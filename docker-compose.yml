@@ -1,6 +1,6 @@
 version: '3.3'
 services:
-  ui:
+  alligoric:
     build: ../alligoric
     image: cql/alligoric:latest
     ports:
@@ -8,11 +8,15 @@ services:
     volumes:
       - ../alligoric:/usr/src/alligoric
       - /usr/src/alligoric/node_modules
-  api:
+    environment:
+      CHOKIDAR_USEPOLLING: 1
+      ALLIGORIC_API_URL: http://localhost:3001
+  alligoric-api:
     build: ../alligoric-api
     image: cql/alligoric-api:latest
     ports:
       - "3001:3001"
+      - "5858:9299"
     stdin_open: true
     tty: true
     volumes:
@@ -20,6 +24,11 @@ services:
       - /usr/src/alligoric-api/node_modules
     depends_on:
       - alligoric-db
+    command: ["node_modules/.bin/nodemon","--inspect=0.0.0.0:9229","-L","./bin/www"]
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgres://postgres:alligori@alligoric-db/alligoric
+      JWT_SECRET: secret
   alligoric-db:
     image: postgres:9.3
     ports:
